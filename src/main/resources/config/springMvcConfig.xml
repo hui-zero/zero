@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="
+        http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/mvc
+        http://www.springframework.org/schema/mvc/spring-mvc.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context.xsd">
+
+    <!-- 配置SpringMVC -->
+    <!-- 1.扫描web相关的bean，只扫描controller层 -->
+    <context:component-scan base-package="com.zero.controller" />
+
+    <!-- 2.开启SpringMVC注解模式 -->
+    <!-- 简化配置：
+        (1)自动注册DefaultAnootationHandlerMapping,AnotationMethodHandlerAdapter
+        (2)提供一些列：数据绑定，数字和日期的format @NumberFormat, @DateTimeFormat, xml,json默认读写支持
+    -->
+    <mvc:annotation-driven/>
+
+    <!-- 3.静态资源默认servlet配置,用默认的Servlet来响应静态文件
+        (1)web.xml允许使用"/"做整体映射（也可以直接在web.xml中方行）
+        (2)加入对静态资源的放行：js,css,image
+        (3)WEB-INF/目录下内容不允许直接访问公共资源，所以静态资源要放到与WEB-INF同级的目录下面
+     -->
+    <mvc:default-servlet-handler/>
+    <!-- 指定路径放行，可以放在WEB-INF目录下 -->
+    <!--<mvc:resources location="/WEB-INF/js/" mapping="/js/**"/>-->
+    <!--<mvc:resources location="/WEB-INF/bootstrap/" mapping="/bootstrap/**"/>-->
+
+    <!-- 4.配置jsp视图解析器 -->
+    <bean id="internalResourceViewResolver" class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+        <property name="prefix" value="/WEB-INF/pages/"/>
+        <property name="suffix" value=".jsp"/>
+    </bean>
+</beans>

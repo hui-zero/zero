@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans.xsd
+	http://www.springframework.org/schema/context
+	http://www.springframework.org/schema/context/spring-context.xsd
+	http://www.springframework.org/schema/aop
+	http://www.springframework.org/schema/aop/spring-aop.xsd
+	http://www.springframework.org/schema/tx
+	http://www.springframework.org/schema/tx/spring-tx.xsd">
+
+    <!-- 扫描service包下所有使用注解的类型 -->
+    <context:component-scan base-package="com.zero.service" />
+
+    <!--配置事务管理器-->
+    <bean id="transActionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <!-- 注入数据库连接池 -->
+        <property name="dataSource" ref="dataSource" />
+    </bean>
+
+    <!-- 配置基于注解的声明式事务 -->
+    <tx:annotation-driven transaction-manager="transActionManager" />
+
+    <!-- 配置基于xml的声明式事务 -->
+    <!--配置事务通知-->
+    <tx:advice id="txAdvice" transaction-manager="transActionManager">
+        <tx:attributes>
+            <!-- <tx:method> 给切入点添加事务详情
+                 name:方法名称, *表示任意方法, do* 表示以do开头的方法
+                 propagation:设置传播行为
+                 isolation:隔离级别
+                 read-only:是否只读
+                 rollback-for:运行时异常回滚-->
+            <tx:method name="save*" propagation="REQUIRED" isolation="DEFAULT" rollback-for="Exception" />
+            <tx:method name="del*" propagation="REQUIRED" isolation="DEFAULT" rollback-for="Exception" />
+            <tx:method name="update*" propagation="REQUIRED" isolation="DEFAULT" rollback-for="Exception" />
+            <tx:method name="select*" propagation="REQUIRED" isolation="DEFAULT" rollback-for="Exception" />
+            <tx:method name="find*" propagation="REQUIRED" isolation="DEFAULT" rollback-for="Exception" />
+            <tx:method name="*" propagation="SUPPORTS" isolation="DEFAULT" read-only="true" />
+        </tx:attributes>
+    </tx:advice>
+
+    <!-- 注入自定义切面 -->
+    <bean id="myAspect" class="com.zero.myaspect.MyAspect"></bean>
+
+    <!--配置AOP增强-->
+    <!-- 若<aop:config>元素中同时存在“<aop:advisor>”元素和“<aop:aspect>元素”
+    （“<aop:pointcut>元素” 可有可无），则它们元素必须按照
+    < aop:pointcut >，<aop:advisor>和<aop:aspect>此顺序来定义 -->
+    <aop:config>
+        <!-- 配置切入点 -->
+        <aop:pointcut id="findAccount" expression="execution(* com.zero.dao.AccountDao.selectAccount(..))"/>
+        <aop:pointcut id="deleteAccount" expression="execution(* com.zero.dao.AccountDao.deleteAccount(..))"/>
+        <aop:pointcut id="saveAccount" expression="execution(* com.zero.dao.AccountDao.saveAccount(..))"/>
+        <!-- 使用advisor进行事务通知 -->
+        <aop:advisor advice-ref="txAdvice" pointcut="execution(* com.zero.service.serviceImpl.*Impl.*(..))"/>
+        <!-- 配置自定义切面 -->
+        <aop:aspect ref="myAspect" order="1">
+            <!-- 配置通知方式 -->
+            <aop:before method="before" pointcut-ref="findAccount"/>
+            <aop:after-returning method="afterRturning" pointcut-ref="deleteAccount"/>
+            <aop:around method="around" pointcut-ref="saveAccount"/>
+        </aop:aspect>
+    </aop:config>
+</beans>
