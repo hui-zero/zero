@@ -1,0 +1,78 @@
+<!DOCTYPE web-app PUBLIC
+ "-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN"
+ "http://java.sun.com/dtd/web-app_2_3.dtd" >
+
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://java.sun.com/xml/ns/javaee"
+         xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
+         version="3.0">
+  <!-- 两种方式启动spring容器
+  1：通过监听器的方式启动Spring容器。
+  当web容器（如：tomcat）启动时，监听器就会监听是否要启动Spring容器，如果监听器检测到需要Spring容器，
+  则监听器就会在后台启动Spring容器。当用户通过浏览器访问时，首先将将请求发给SpringMVC通过Spring容器
+  获取具体的对象直接完成业务调用，用户不需要等待容器启动。弊端：服务开启时时间加长（不影响用户体验，可忽略）
+  2：通过前端控制器直接扫描全部容器。
+  如果SpringMVC和Spring的配置文件都是通过前端控制器扫描则容器的启动是懒加载。只有浏览器发出请求之后，
+  前端控制器才会启动Spring容器和SpringMVC容器。
+  弊端：如果是大型项目，用户访问时，这时后台的容器才会启动，用户等待的时间较长。-->
+
+  <!--配置监听器启动spring容器  -->
+  <listener>
+    <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+  </listener>
+  <context-param>
+    <param-name>contextConfigLocation</param-name>
+    <param-value>classpath:/config/springContext*.xml</param-value>
+  </context-param>
+  <!-- 配置前端控制器 -->
+  <servlet>
+    <servlet-name>springMvc</servlet-name>
+    <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+    <!--配置加载SpringMvcConfig.xml  -->
+    <init-param>
+      <param-name>contextConfigLocation</param-name>
+      <param-value>classpath:/config/springMvcConfig.xml</param-value>
+    </init-param>
+    <!--启动服务器时就创建该servlet-->
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <!--
+		/ 规定
+		1.表示拦截 全部的请求
+		2.拦截所有静态资源js/css/image 后面在mvc配置文件中放行
+	    3.不拦截.jsp资源
+	-->
+  <servlet-mapping>
+    <servlet-name>springMvc</servlet-name>
+    <url-pattern>/</url-pattern>
+  </servlet-mapping>
+  <!-- 也可以在这使用default放行 -->
+  <!--<servlet-mapping>-->
+    <!--<servlet-name>default</servlet-name>-->
+    <!--<url-pattern>*.js</url-pattern>-->
+  <!--</servlet-mapping>-->
+  <!--<servlet-mapping>-->
+    <!--<servlet-name>default</servlet-name>-->
+    <!--<url-pattern>*.css</url-pattern>-->
+  <!--</servlet-mapping>-->
+
+  <!--配置全站编码过滤器 解决POST乱码  -->
+  <filter>
+    <filter-name>characterEncoding</filter-name>
+    <filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
+    <init-param>
+      <!--定义默认字符集utf-8  -->
+      <param-name>encoding</param-name>
+      <param-value>UTF-8</param-value>
+    </init-param>
+  </filter>
+  <filter-mapping>
+    <filter-name>characterEncoding</filter-name>
+    <url-pattern>/*</url-pattern>
+  </filter-mapping>
+
+  <!--定义默认访问页  -->
+  <!--<welcome-file-list>-->
+    <!--<welcome-file>index.jsp</welcome-file>-->
+  <!--</welcome-file-list>-->
+</web-app>
